@@ -1,35 +1,36 @@
 services:
   - type: web
-    name: avatar-frame-api
-    runtime: node
-    plan: free
-    region: singapore
-    buildCommand: npm install && npm run build:api
-    startCommand: npm run start --workspace=apps/api
-    envVars:
-      - key: PORT
-        value: 10000
-      - key: NODE_ENV
-        value: production
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: CORS_ORIGIN
-        sync: false
-      - key: ADMIN_EMAIL
-        value: admin@example.com
-      - key: ADMIN_PASSWORD
-        sync: false
-
-staticSites:
-  - name: avatar-frame-web
-    buildCommand: npm install && npm run build:web
-    staticPublishPath: apps/web/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_BASE_URL
-        sync: false
+      name: avatar-frame-api
+          runtime: node
+              plan: free
+                  region: singapore
+                      buildCommand: npm install && npm run build:api
+                          startCommand: npm run start --workspace=apps/api
+                              envVars:
+                                    - key: PORT
+                                            value: 10000
+                                                  - key: NODE_ENV
+                                                          value: production
+                                                                - key: MONGODB_URI
+                                                                        sync: false
+                                                                              - key: JWT_SECRET
+                                                                                      generateValue: true
+                                                                                            - key: CORS_ORIGIN
+                                                                                                    sync: false
+                                                                                                          - key: ADMIN_EMAIL
+                                                                                                                  value: admin@example.com
+                                                                                                                        - key: ADMIN_PASSWORD
+                                                                                                                                sync: false
+                                                                                                                                
+                                                                                                                                  - type: web
+                                                                                                                                      name: avatar-frame-web
+                                                                                                                                          runtime: static
+                                                                                                                                              buildCommand: npm install && npm run build:web
+                                                                                                                                                  staticPublishPath: apps/web/dist
+                                                                                                                                                      routes:
+                                                                                                                                                            - type: rewrite
+                                                                                                                                                                    source: /*
+                                                                                                                                                                            destination: /index.html
+                                                                                                                                                                                envVars:
+                                                                                                                                                                                      - key: VITE_API_BASE_URL
+                                                                                                                                                                                              sync: false
