@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: avatar-frame-prod-db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-prod_secure_password_123}
+      MONGO_INITDB_DATABASE: avatar_frame
+    volumes:
+      - mongo_prod_data:/data/db
+    networks:
+      - app_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: avatar-frame-prod-api
+    restart: always
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-prod_secure_password_123}@mongodb:27017/avatar_frame?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-change_this_long_random_secret_string_32_chars}
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123456}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      UPLOAD_DIR: ./uploads
+    volumes:
+      - uploads_data:/app/apps/api/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app_net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    container_name: avatar-frame-prod-web
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app_net
+
+volumes:
+  mongo_prod_data:
+  uploads_data:
+
+networks:
+  app_net:
+    driver: bridge
